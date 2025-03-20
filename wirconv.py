@@ -21,9 +21,6 @@ class Channels(Enum):
 
 class Wir:
     def __init__(self, path):
-        """
-        :param path: the path to the .wir file
-        """
         with open(path, "rb") as f:
             self.path = path
             self.header = f.read(40)
