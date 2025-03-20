@@ -1,7 +1,7 @@
 # todo:
 #
 # channel order is RR,LL,LR?,RL? ???
-# normalize to -18db
+# normalize to -12db
 
 import wave
 import struct
@@ -67,10 +67,12 @@ class Wir:
         return int(len(self.data) / 4)
 
     def scaled_samples(self):
+        max_db = -12.0
+        amplitude = 10 ** (max_db/20)
         actual_sample_len = self.actual_sample_len()
         samples = struct.unpack(f"{actual_sample_len}f", self.data[:actual_sample_len * 4])
         max_val = max(abs(s) for s in samples)
-        samples = [s / max_val for s in samples] if max_val > 0 else samples
+        samples = [s / max_val * amplitude for s in samples] if max_val > 0 else samples
         samples = struct.pack(f'<{len(samples)}f', *samples)
         return samples
 
@@ -119,10 +121,12 @@ class Wir:
             # Wir _appears_ to put the direct responses first,
             # and cross channel second,
             # so guessing the order is LL,RR,LR,RL.
+            # - channel order is RR,LL,LR?,RL? ???
             # fixme: bus true stereo sounds backwards...
             # birdland club sounds backwards
             # 48l car interior sounds strange
-            samples = self.swizzle_channels(samples, [0,2,3,1])
+            #samples = self.swizzle_channels(samples, [0,2,3,1])
+            samples = self.swizzle_channels(samples, [1,2,3,0])
 
         sample_rate = self.framerate
 
