@@ -1,8 +1,3 @@
-# todo:
-#
-# channel order is RR,LL,LR?,RL? ???
-# normalize to -12db
-
 import wave
 import struct
 import io
