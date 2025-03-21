@@ -100,8 +100,6 @@ class Wir:
 
         os.makedirs(outpath, exist_ok=True)
 
-        file_name = self.out_file_name(outpath, file_stem, props)
-
         samples = self.scaled_samples()
 
         # Many files seem to have unequal channel lengths :-/
@@ -109,6 +107,8 @@ class Wir:
         num_frames = len(samples) // framesize
         truncated_bytes = num_frames * framesize
         samples = samples[:truncated_bytes]
+
+        file_name = self.out_file_name(outpath, file_stem, props)
 
         if props.direct_config == Channels.TRUE_STEREO:
             assert props.num_channels == 4
