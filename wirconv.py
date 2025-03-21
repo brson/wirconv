@@ -108,28 +108,44 @@ class Wir:
         truncated_bytes = num_frames * framesize
         samples = samples[:truncated_bytes]
 
-        file_name = self.out_file_name(outpath, file_stem, props)
-
-        if props.direct_config == Channels.TRUE_STEREO:
-            assert props.num_channels == 4
-            # We want channel order LL,LR,RL,RR.
-            # Wir _appears_ to put the direct responses first,
-            # and cross channel second,
-            # so guessing the order is LL,RR,LR,RL.
-            # - channel order is RR,LL,LR?,RL? ???
-            # fixme: bus true stereo sounds backwards...
-            # birdland club sounds backwards
-            # 48l car interior sounds strange
-            #samples = self.swizzle_channels(samples, [0,2,3,1])
-            samples = self.swizzle_channels(samples, [1,2,3,0])
+        # 0231 and 1230 sound best
+        orders = [
+            #("0123", [0,1,2,3]),
+            ("0231", [0,2,3,1]),
+            ("0321", [0,3,2,1]),
+            ("1230", [1,2,3,0]),
+            ("1320", [1,3,2,0])
+        ]
 
         sample_rate = self.framerate
 
-        self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
+        if props.direct_config == Channels.TRUE_STEREO:
+            for variant in orders:
+                tag = variant[0]
+                swizzle = variant[1]
+                file_name = self.out_file_name(outpath, file_stem, props, tag)
+
+                if props.direct_config == Channels.TRUE_STEREO:
+                    assert props.num_channels == 4
+                    # We want channel order LL,LR,RL,RR.
+                    # Wir _appears_ to put the direct responses first,
+                    # and cross channel second,
+                    # so guessing the order is LL,RR,LR,RL.
+                    # - channel order is RR,LL,LR?,RL? ???
+                    # fixme: bus true stereo sounds backwards...
+                    # birdland club sounds backwards
+                    # 48l car interior sounds strange
+                    #samples = self.swizzle_channels(samples, [0,2,3,1])
+                    samples = self.swizzle_channels(samples, swizzle)
+
+                    self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
+        else:
+            file_name = self.out_file_name(outpath, file_stem, props, "")
+            self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
 
         return 1
 
-    def out_file_name(self, outpath, file_stem, props):
+    def out_file_name(self, outpath, file_stem, props, tag):
         assert not props.is_bogus and not props.is_ambisonic
         channel_slug = ""
         if props.direct_config == Channels.MONO:
@@ -138,7 +154,7 @@ class Wir:
             channel_slug = "Stereo"
         if props.direct_config == Channels.TRUE_STEREO:
             channel_slug = "TrueStereo"
-        return f"{outpath}/{file_stem} {channel_slug}.wav"
+        return f"{outpath}/{file_stem} {channel_slug} {tag}.wav"
 
     def get_props(self):
         num_channels = self.num_channels
