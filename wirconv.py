@@ -1,3 +1,11 @@
+# -15 db?
+
+# candidate channel orders
+#
+# 1302 - i think this is it, RL,LL,RR,LR??
+# 1032
+# 3021
+
 from itertools import permutations
 import wave
 import struct
