@@ -1,5 +1,7 @@
 # wirconv
 
+**This does not work yet. Still debugging.**
+
 Converts `.wir` files, as used by Waves IR-1,
 to standard `.wav` files,
 loadable by typical convolution reverbs.

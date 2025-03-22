@@ -1,3 +1,4 @@
+from itertools import permutations
 import wave
 import struct
 import io
@@ -110,12 +111,13 @@ class Wir:
 
         # 0231 and 1230 sound best
         orders = [
-            #("0123", [0,1,2,3]),
+            ("0123", [0,1,2,3]),
             ("0231", [0,2,3,1]),
             ("0321", [0,3,2,1]),
             ("1230", [1,2,3,0]),
             ("1320", [1,3,2,0])
         ]
+        orders = [( "".join(map(str, perm)), list(perm) ) for perm in permutations([0,1,2,3])]
 
         sample_rate = self.framerate
 
@@ -127,15 +129,6 @@ class Wir:
 
                 if props.direct_config == Channels.TRUE_STEREO:
                     assert props.num_channels == 4
-                    # We want channel order LL,LR,RL,RR.
-                    # Wir _appears_ to put the direct responses first,
-                    # and cross channel second,
-                    # so guessing the order is LL,RR,LR,RL.
-                    # - channel order is RR,LL,LR?,RL? ???
-                    # fixme: bus true stereo sounds backwards...
-                    # birdland club sounds backwards
-                    # 48l car interior sounds strange
-                    #samples = self.swizzle_channels(samples, [0,2,3,1])
                     samples = self.swizzle_channels(samples, swizzle)
 
                     self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
