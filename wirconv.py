@@ -1,9 +1,3 @@
-# candidate channel orders
-#
-# 1302 - i think this is it, RL,LL,RR,LR??
-# 1032
-# 3021
-
 from itertools import permutations
 import wave
 import struct
@@ -18,6 +12,11 @@ import os
 default_max_db = -15.0
 default_channel_swizzle = [1,3,0,2] # wir is RL,LL,RR,LR??
 
+# candidate channel orders - these sound good in bitwig
+#
+# 1302 - i think this is it, RL,LL,RR,LR??
+# 1032
+# 3021
 
 class Channels(Enum):
     MONO = 4
