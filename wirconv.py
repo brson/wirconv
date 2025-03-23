@@ -29,7 +29,10 @@ class TrueStereoOut(Enum):
     SPLIT = 2
 
 class Wir:
-    def __init__(self, path):
+    def __init__(self, path, ts_format: TrueStereoOut, ts_channel_swizzle: list[int]):
+        self.ts_format = ts_format
+        self.ts_channel_swizzle = ts_channel_swizzle
+    
         with open(path, "rb") as f:
             self.path = path
             self.header = f.read(40)
@@ -123,10 +126,20 @@ class Wir:
 
         sample_rate = self.framerate
 
-        if props.direct_config == Channels.TRUE_STEREO:
+        if props.direct_config == Channels.TRUE_STEREO and self.ts_format == TrueStereoOut.MUXED:
             assert props.num_channels == 4
-            samples = self.swizzle_channels(samples, default_channel_swizzle)
+            assert len(self.ts_channel_swizzle) == 4
+            samples = self.swizzle_channels(samples, ts_channel_swizzle)
             file_name = self.out_file_name(outpath, file_stem, props, "")
+            self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
+        elif props.direct_config == Channels.TRUE_STEREO and self.ts_format == TrueStereoOut.SPLIT:
+            assert props.num_channels == 4
+            assert len(self.ts_channel_swizzle) == 4
+            samples = self.swizzle_channels(samples, ts_channel_swizzle[0:2])
+            file_name = self.out_file_name(outpath, file_stem, props, " L")
+            self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
+            samples = self.swizzle_channels(samples, ts_channel_swizzle[2:4])
+            file_name = self.out_file_name(outpath, file_stem, props, " R")
             self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
         else:
             file_name = self.out_file_name(outpath, file_stem, props, "")
@@ -277,12 +290,12 @@ if __name__ == '__main__':
     for path, dirs, files in os.walk(in_dir):
         for file_name in files:
             if fnmatch(file_name, "*.wir"):
-                wir = Wir(os.path.join(path, file_name))
+                infile = os.path.join(path, file_name)
+                wir = Wir(infile, ts_format, ts_channel_swizzle)
                 relpath = path.removeprefix(in_dir)
-                inpath = path
                 outpath = f"{out_dir}/{relpath}"
                 file_stem = os.path.splitext(file_name)[0]
                 files_written = wir.write_wavs(outpath, file_stem)
                 num_found += 1
                 num_conversions += files_written
-    print(f"{num_found} files found, {num_conversions} converted.")
+    print(f"{num_found} wirs found, {num_conversions} converted.")
