@@ -11,6 +11,7 @@ import os
 
 default_max_db = -15.0
 default_channel_swizzle = [1,3,0,2] # wir is RL,LL,RR,LR??
+default_channel_swizzle_str = "1302"
 
 # candidate channel orders - these sound good in bitwig
 #
@@ -249,6 +250,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--indir", type=str, required=False, default=".", help="Input directory")
     parser.add_argument("--outdir", type=str, required=False, default=".", help="Output directory")
+    parser.add_argument("--true-stereo-channel-swizzle", type=str, required=False, default=default_channel_swizzle_str, help="True stereo channel swizzle")
+    parser.add_argument("--split-true-stereo", action="store_true", required=False, default=False, help="Use split true stereo files")
     args = parser.parse_args()
 
     in_dir = args.indir
