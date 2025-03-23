@@ -1,5 +1,3 @@
-# -15 db?
-
 # candidate channel orders
 #
 # 1302 - i think this is it, RL,LL,RR,LR??
@@ -15,6 +13,10 @@ from enum import Enum
 from fnmatch import fnmatch
 from types import SimpleNamespace
 import os
+
+
+default_max_db = -15.0
+default_channel_swizzle = [1,3,0,2] # wir is RL,LL,RR,LR??
 
 
 class Channels(Enum):
@@ -71,8 +73,7 @@ class Wir:
         return int(len(self.data) / 4)
 
     def scaled_samples(self):
-        max_db = -12.0
-        amplitude = 10 ** (max_db/20)
+        amplitude = 10 ** (default_max_db/20)
         actual_sample_len = self.actual_sample_len()
         samples = struct.unpack(f"{actual_sample_len}f", self.data[:actual_sample_len * 4])
         max_val = max(abs(s) for s in samples)
@@ -117,29 +118,13 @@ class Wir:
         truncated_bytes = num_frames * framesize
         samples = samples[:truncated_bytes]
 
-        # 0231 and 1230 sound best
-        orders = [
-            ("0123", [0,1,2,3]),
-            ("0231", [0,2,3,1]),
-            ("0321", [0,3,2,1]),
-            ("1230", [1,2,3,0]),
-            ("1320", [1,3,2,0])
-        ]
-        orders = [( "".join(map(str, perm)), list(perm) ) for perm in permutations([0,1,2,3])]
-
         sample_rate = self.framerate
 
         if props.direct_config == Channels.TRUE_STEREO:
-            for variant in orders:
-                tag = variant[0]
-                swizzle = variant[1]
-                file_name = self.out_file_name(outpath, file_stem, props, tag)
-
-                if props.direct_config == Channels.TRUE_STEREO:
-                    assert props.num_channels == 4
-                    samples = self.swizzle_channels(samples, swizzle)
-
-                    self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
+            assert props.num_channels == 4
+            samples = self.swizzle_channels(samples, swizzle)
+            file_name = self.out_file_name(outpath, file_stem, props, "")
+            self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
         else:
             file_name = self.out_file_name(outpath, file_stem, props, "")
             self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
@@ -155,7 +140,7 @@ class Wir:
             channel_slug = "Stereo"
         if props.direct_config == Channels.TRUE_STEREO:
             channel_slug = "TrueStereo"
-        return f"{outpath}/{file_stem} {channel_slug} {tag}.wav"
+        return f"{outpath}/{file_stem} {channel_slug}{tag}.wav"
 
     def get_props(self):
         num_channels = self.num_channels
