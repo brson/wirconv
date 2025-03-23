@@ -122,7 +122,7 @@ class Wir:
 
         if props.direct_config == Channels.TRUE_STEREO:
             assert props.num_channels == 4
-            samples = self.swizzle_channels(samples, swizzle)
+            samples = self.swizzle_channels(samples, default_channel_swizzle)
             file_name = self.out_file_name(outpath, file_stem, props, "")
             self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
         else:
