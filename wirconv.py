@@ -24,6 +24,9 @@ class Channels(Enum):
     STEREO = 8
     TRUE_STEREO = 16
 
+class TrueStereoOut(Enum):
+    MUXED = 1
+    SPLIT = 2
 
 class Wir:
     def __init__(self, path):
@@ -245,17 +248,29 @@ class Wir:
             wave_file.setframerate(sample_rate)
             wave_file.writeframes(samples)
 
+def parse_channel_swizzle(swizzle_str: str) -> list[int]:
+    if len(swizzle_str) != 4 or not swizzle_str.isdigit():
+        raise ValueError("Input must be a string of exactly four digits.")
+    
+    return [int(char) for char in swizzle_str]    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--indir", type=str, required=False, default=".", help="Input directory")
     parser.add_argument("--outdir", type=str, required=False, default=".", help="Output directory")
-    parser.add_argument("--true-stereo-channel-swizzle", type=str, required=False, default=default_channel_swizzle_str, help="True stereo channel swizzle")
     parser.add_argument("--split-true-stereo", action="store_true", required=False, default=False, help="Use split true stereo files")
+    parser.add_argument("--true-stereo-channel-swizzle", type=str, required=False, default=default_channel_swizzle_str, help="True stereo channel swizzle")
     args = parser.parse_args()
 
     in_dir = args.indir
     out_dir = args.outdir
+    ts_format = TrueStereoOut.SPLIT if args.split_true_stereo else TrueStereoOut.MUXED
+    ts_channel_swizzle = parse_channel_swizzle(args.true_stereo_channel_swizzle)
+
+    print(f"in dir: {in_dir}")
+    print(f"out dir: {out_dir}")
+    print(f"true stereo out format: {ts_format}")
+    print(f"true stereo channel swizzle: {ts_channel_swizzle}")
 
     num_found = 0
     num_conversions = 0
