@@ -10,8 +10,9 @@ import os
 
 
 default_max_db = -15.0
-default_channel_swizzle = [1,3,0,2] # wir is RL,LL,RR,LR??
-default_channel_swizzle_str = "1302"
+default_ts_channel_swizzle_str = "1032"
+# stereo channels seem to be backwards
+stereo_channel_swizzle = [1,0]
 
 # candidate channel orders - these sound good in bitwig
 #
@@ -141,7 +142,13 @@ class Wir:
             samples = self.swizzle_channels(samples, ts_channel_swizzle[2:4])
             file_name = self.out_file_name(outpath, file_stem, props, " R")
             self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
+        elif props.direct_config == Channels.STEREO:
+            assert props.num_channels == 2
+            samples = self.swizzle_channels(samples, stereo_channel_swizzle)
+            file_name = self.out_file_name(outpath, file_stem, props, "")
+            self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
         else:
+            assert props.num_channels == 1
             file_name = self.out_file_name(outpath, file_stem, props, "")
             self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
 
@@ -272,7 +279,7 @@ if __name__ == '__main__':
     parser.add_argument("--indir", type=str, required=False, default=".", help="Input directory")
     parser.add_argument("--outdir", type=str, required=False, default=".", help="Output directory")
     parser.add_argument("--split-true-stereo", action="store_true", required=False, default=False, help="Use split true stereo files")
-    parser.add_argument("--true-stereo-channel-swizzle", type=str, required=False, default=default_channel_swizzle_str, help="True stereo channel swizzle")
+    parser.add_argument("--true-stereo-channel-swizzle", type=str, required=False, default=default_ts_channel_swizzle_str, help="True stereo channel swizzle")
     args = parser.parse_args()
 
     in_dir = args.indir
