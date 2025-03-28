@@ -30,9 +30,16 @@ class TrueStereoOut(Enum):
     SPLIT = 2
 
 class Wir:
-    def __init__(self, path, ts_format: TrueStereoOut, ts_channel_swizzle: list[int]):
+    def __init__(
+            self,
+            path,
+            ts_format: TrueStereoOut,
+            ts_channel_swizzle: list[int],
+            max_db: float,
+    ):
         self.ts_format = ts_format
         self.ts_channel_swizzle = ts_channel_swizzle
+        self.max_db = max_db
     
         with open(path, "rb") as f:
             self.path = path
@@ -80,7 +87,7 @@ class Wir:
         return int(len(self.data) / 4)
 
     def scaled_samples(self):
-        amplitude = 10 ** (default_max_db/20)
+        amplitude = 10 ** (self.max_db/20)
         actual_sample_len = self.actual_sample_len()
         samples = struct.unpack(f"{actual_sample_len}f", self.data[:actual_sample_len * 4])
         max_val = max(abs(s) for s in samples)
@@ -280,17 +287,20 @@ if __name__ == '__main__':
     parser.add_argument("--outdir", type=str, required=False, default=".", help="Output directory")
     parser.add_argument("--split-true-stereo", action="store_true", required=False, default=False, help="Use split true stereo files")
     parser.add_argument("--true-stereo-channel-swizzle", type=str, required=False, default=default_ts_channel_swizzle_str, help="True stereo channel swizzle")
+    parser.add_argument("--max-db", type=float, required=False, default=default_max_db, help="Normalized dBFS")
     args = parser.parse_args()
 
     in_dir = args.indir
     out_dir = args.outdir
     ts_format = TrueStereoOut.SPLIT if args.split_true_stereo else TrueStereoOut.MUXED
     ts_channel_swizzle = parse_channel_swizzle(args.true_stereo_channel_swizzle)
+    max_db = args.max_db
 
     print(f"in dir: {in_dir}")
     print(f"out dir: {out_dir}")
     print(f"true stereo out format: {ts_format}")
     print(f"true stereo channel swizzle: {ts_channel_swizzle}")
+    print(f"max db: {max_db}")
 
     num_found = 0
     num_conversions = 0
@@ -298,7 +308,7 @@ if __name__ == '__main__':
         for file_name in files:
             if fnmatch(file_name, "*.wir"):
                 infile = os.path.join(path, file_name)
-                wir = Wir(infile, ts_format, ts_channel_swizzle)
+                wir = Wir(infile, ts_format, ts_channel_swizzle, max_db)
                 relpath = path.removeprefix(in_dir)
                 outpath = f"{out_dir}/{relpath}"
                 file_stem = os.path.splitext(file_name)[0]
