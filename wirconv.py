@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import os
 
 
-default_max_db = -15.0
+default_max_db = -18.0
 default_ts_channel_swizzle_str = "1032"
 # stereo channels seem to be backwards
 stereo_channel_swizzle = [1,0]
