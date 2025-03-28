@@ -137,16 +137,16 @@ class Wir:
         if props.direct_config == Channels.TRUE_STEREO and self.ts_format == TrueStereoOut.MUXED:
             assert props.num_channels == 4
             assert len(self.ts_channel_swizzle) == 4
-            samples = self.swizzle_channels(samples, ts_channel_swizzle)
+            samples = self.swizzle_channels(samples, self.ts_channel_swizzle)
             file_name = self.out_file_name(outpath, file_stem, props, "")
             self.write_single_wav(file_name, props.num_channels, sample_rate, samples)
         elif props.direct_config == Channels.TRUE_STEREO and self.ts_format == TrueStereoOut.SPLIT:
             assert props.num_channels == 4
             assert len(self.ts_channel_swizzle) == 4
-            samples = self.swizzle_channels(samples, ts_channel_swizzle[0:2])
+            samples = self.swizzle_channels(samples, self.ts_channel_swizzle[0:2])
             file_name = self.out_file_name(outpath, file_stem, props, " L")
             self.write_single_wav(file_name, 2, sample_rate, samples)
-            samples = self.swizzle_channels(samples, ts_channel_swizzle[2:4])
+            samples = self.swizzle_channels(samples, self.ts_channel_swizzle[2:4])
             file_name = self.out_file_name(outpath, file_stem, props, " R")
             self.write_single_wav(file_name, 2, sample_rate, samples)
         elif props.direct_config == Channels.STEREO:
